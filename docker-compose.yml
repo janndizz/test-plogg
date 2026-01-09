@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/demo
+      - NODE_ENV=development
+      - JWT_SECRET=2f8d9e7a1b3c4d5f6g7h8i9j0k
+      - GOOGLE_CLIENT_ID=284171273912-60ttlp1810alq5bfnpa5ao4piev6f1fo.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=letuannhan.jan@gmail.com
+      - EMAIL_PASS=eztw uveg hliq ebyr
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:5000/api
+      - REACT_APP_GOOGLE_CLIENT_ID=284171273912-60ttlp1810alq5bfnpa5ao4piev6f1fo.apps.googleusercontent.com
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
